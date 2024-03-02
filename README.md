@@ -1,11 +1,10 @@
 # Event-Driven Microservices Architecture Overview
 
-This architecture diagram represents an Event-Driven Architecture (EDA) setup for a microservices-based system.
-Here is the detailed workflow:
+This repository provides a comprehensive example of an event-driven microservices architecture designed for efficient order management. It leverages technologies such as Kafka, MongoDB, Redis, PostgreSQL, Quarkus, Spring Boot, and Apache Camel to create a scalable, reliable, and reactive system.
 
 ![Diagram](1.png)
 
-## Components
+## Key Components
 
 - **Client**: The user interface or client application that interacts with the system.
 - **Users UI**: A user interface developed with the Quarkus framework.
@@ -158,5 +157,7 @@ This section allows users to manage their shipments, track statuses.
 - Maven
 
 ### Author
+
+![Andrea Cavallo](ac.jpg "Andrea Cavallo")
 
 [Andrea Cavallo] - [a.cavallo@outlook.it]
