@@ -1,0 +1,18 @@
+curl --location 'http://localhost:8083/connectors' \
+--header 'Content-Type: application/json' \
+--data '{
+  "name": "mongo-source-connector-shipmentManagement",
+  "config": {
+    "connector.class": "com.mongodb.kafka.connect.MongoSourceConnector",
+    "tasks.max": "1",
+    "connection.uri": "mongodb://mongodb:27017",
+    "database": "shipmentManagement",
+    "collection": "shipments",
+    "copy.existing": "true",
+    "topic.prefix": "notifier",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}
+'

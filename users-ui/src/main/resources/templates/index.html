@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Index</title>
+  <link rel="stylesheet" href="./css/style.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="icon" type="image/x-icon" href="https://img.icons8.com/fluency/48/drop-shipping.png" >
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+  <style>
+    header {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      width: 100%; /* Assicura che l'header sia sempre largo quanto la pagina */
+      box-sizing: border-box; /* Include padding e border nel calcolo della larghezza */
+      position: relative;
+    }
+    #drag-handle {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%; /* Assicura che la maniglia di trascinamento copra tutta la larghezza dell'header */
+      height: 20px;
+      background-color: #007bff;
+      cursor: ns-resize;
+    }
+  </style>
+</head>
+<body>
+<noscript>
+  <div style="background-color: yellow; text-align: center; padding: 10px;">
+    Per utilizzare i servizi di questo sito, per favore abilita JavaScript nel tuo browser.
+  </div>
+</noscript>
+<header id="expandable-header">
+
+  <div id="drag-handle"></div>
+</header>
+
+<script>
+  $(function() {
+    $("#expandable-header").resizable({
+      handles: {
+        's': '#drag-handle'
+      },
+      minHeight: 60,
+      maxHeight: 500
+    });
+
+    // Imposta la larghezza dell'header e della maniglia di trascinamento
+    function setWidth() {
+      var windowWidth = $(window).width(); // Ottiene la larghezza della finestra
+      $("#expandable-header, #drag-handle").css('width', windowWidth);
+    }
+
+    // Chiama setWidth all'avvio e al ridimensionamento della finestra
+    setWidth();
+    $(window).resize(function() {
+      setWidth();
+    });
+  });
+</script>
+
+<section class="auth-container">
+  <!-- Sezione di Login -->
+  <div id="login-container">
+    <form id="form-login" onsubmit="return effettuaLogin(event)" >
+
+      <h4>Bentornato, effettua il login:</h4>
+      <br>
+      <div id="loader" class="nascosto">Caricamento...</div>
+      <div class="campo-form">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" placeholder="Inserisci la tua email" required>
+      </div>
+      <div class="campo-form">
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Inserisci la tua password" required>
+      </div>
+      <br>
+      <div class="pulsanti-form" style="text-align: left;">
+        <button type="submit">Login</button>
+      </div>
+
+      <div id="messaggio-errore" class="nascosto">
+        <strong>Errore:</strong>
+        <p id="testo-errore">Credenziali non corrette.</p>
+      </div>
+    </form>
+    <!-- Bottone per mostrare il form di registrazione -->
+    <button id="mostra-registrazione" class="link-stile">Sei nuovo? Registrati</button>
+  </div>
+  <!-- Sezione di Registrazione nascosta -->
+  <div id="registrazione-container" class="nascosto">
+    <form id="form-registrazione" onsubmit="return effettuaRegistrazione(event)">
+
+      <h4>Benvenuto, registrati per utilizzare i nostri servizi:</h4>
+      <div class="campo-form">
+        <label for="reg-nome">Nome:</label>
+        <input type="text" id="reg-nome" name="nome" placeholder="Il tuo nome" required>
+      </div>
+      <div class="campo-form">
+        <label for="reg-cognome">Cognome:</label>
+        <input type="text" id="reg-cognome" name="cognome" placeholder="Il tuo cognome" required>
+      </div>
+      <div class="campo-form">
+        <label for="reg-email">Email:</label>
+        <input type="email" id="reg-email" name="email" placeholder="Inserisci la tua email" required>
+      </div>
+      <div class="campo-form">
+        <label for="reg-password">Password:</label>
+        <input type="password" id="reg-password" name="password" placeholder="Crea una password" required>
+      </div>
+      <div class="pulsanti-form">
+        <button type="submit">Registrati</button>
+        <button type="button" id="torna-login" onclick="mostraFormLogin()">Torna al Login</button>
+      </div>
+    </form>
+  </div>
+  <div id="spinner" class="nascosto">
+    <div class="spinner-border" role="status"></div>
+  </div>
+
+  <div id="registrazione-successo" class="nascosto">
+    <p>Registrazione completata con successo!</p>
+    <button id="torna-alla-home" onclick="window.location.href='/'">Torna alla Home</button>
+  </div>
+
+  <div id="registrazione-errore" class="nascosto">
+    <p id="testo-errore-registrazione"></p>
+  </div>
+</section>
+<footer style="background-color: #007bff; color: white; text-align: center; padding: 20px; margin-top: 20px;">
+  © 2024 Andrea Cavallo
+</footer>
+<script src="/js/login.js"></script>
+</body>
+</html>

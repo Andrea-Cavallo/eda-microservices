@@ -1,0 +1,211 @@
+version: '3.8'
+
+services:
+  
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:latest
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_MY_ID: 1
+      ZOO_SERVERS: server.1=zookeeper:2888:3888;2181
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:latest
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - zookeeper
+      - kafka  
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686" # Jaeger UI
+      - "14268:14268" # Receive legacy OpenTracing traces, optional
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver, not yet used by Quarkus, optional
+      - "14250:14250" # Receive from external otel-collector, optional
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+
+  redis:
+    image: redis:latest 
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pwd
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8088:80"
+
+  shipments-producer:
+    container_name: shipments-producer
+    build: shipments-producer
+    image: eda-microservices/shipments-producer
+    depends_on:
+      - kafka
+      - zookeeper
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT= http://jaeger:4318      
+    ports:
+      - "8082:8082"
+
+  shipments-read:
+    container_name: shipments-read
+    build: shipments-read
+    image: eda-microservices/shipments-read
+    depends_on:
+      - mongodb
+    environment:
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT= http://jaeger:4318      
+    ports:
+      - "8084:8084"
+
+  users-write:
+    container_name: users-write
+    build: users-write
+    image: eda-microservices/users-write
+    depends_on:
+      - db
+    environment:
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT= http://jaeger:4318      
+    ports:
+      - "8085:8085"
+
+  shipments-consumer-write:
+    container_name: shipments-consumer-write
+    build: shipments-consumer-write
+    image: eda-microservices/shipments-consumer-write
+    depends_on:
+      - mongodb
+      - kafka
+      - zookeeper
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT= http://jaeger:4318         
+    ports:
+      - "8091:8091"
+
+  shipments-notifier-consumer:
+    container_name: shipments-notifier-consumer
+    build: shipments-notifier-consumer
+    image: eda-microservices/shipments-notifier-consumer
+    depends_on:
+      - mailhog
+      - kafka
+      - zookeeper
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT= http://jaeger:4318        
+    ports:
+      - "8097:8097"
+
+  users-ui:
+    container_name: users-ui
+    build: users-ui
+    image: eda-microservices/users-ui
+    environment:
+      - MANAGEMENT_OTLP_TRACING_ENDPOINT= http://jaeger:4318       
+    ports:
+      - "8092:8092"
+
+
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:6.2.0
+    depends_on:
+      - kafka
+      - zookeeper
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "kafka:29092"
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect # Assicurati che questo sia raggiungibile dagli altri servizi
+      CONNECT_GROUP_ID: "quickstart"
+      CONNECT_CONFIG_STORAGE_TOPIC: "quickstart-config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "quickstart-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "quickstart-status"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_PLUGIN_PATH: "/usr/share/java"
+    volumes:
+      - ./my-plugins:/usr/share/java/my-plugins
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "1025:1025" 
+      - "8025:8025"             
+
+  mongodb:
+    image: mongo:7.0
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017" 
+    volumes:
+      - mongo_data:/data/db
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+     
+
+
+
+
+volumes:
+  mongo_data:
+
+    
+

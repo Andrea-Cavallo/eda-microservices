@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="icon" type="image/x-icon" href="https://img.icons8.com/fluency/48/drop-shipping.png" >
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+  <style>
+    header {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      width: 100%; /* Assicura che l'header sia sempre largo quanto la pagina */
+      box-sizing: border-box; /* Include padding e border nel calcolo della larghezza */
+      position: relative;
+    }
+    #drag-handle {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%; /* Assicura che la maniglia di trascinamento copra tutta la larghezza dell'header */
+      height: 20px;
+      background-color: #007bff;
+      cursor: ns-resize;
+    }
+
+
+
+  </style>
+</head>
+<body>
+<noscript>
+  <div style="background-color: yellow; text-align: center; padding: 10px;">
+    Per utilizzare i servizi di questo sito, per favore abilita JavaScript nel tuo browser.
+  </div>
+</noscript>
+<header id="expandable-header">
+
+  <div id="drag-handle"></div>
+</header>
+
+
+<script>
+  $(function() {
+    $("#expandable-header").resizable({
+      handles: {
+        's': '#drag-handle'
+      },
+      minHeight: 120,
+      maxHeight: 500
+    });
+
+    // Imposta la larghezza dell'header e della maniglia di trascinamento
+    function setWidth() {
+      var windowWidth = $(window).width(); // Ottiene la larghezza della finestra
+      $("#expandable-header, #drag-handle").css('width', windowWidth);
+    }
+
+    // Chiama setWidth all'avvio e al ridimensionamento della finestra
+    setWidth();
+    $(window).resize(function() {
+      setWidth();
+    });
+  });
+</script>
+<div class="container">
+
+<form id="form-spedizione" onsubmit="return inviaDatiSpedizione(event)">
+  <h1 style="text-align: center;">Organizza la tua prossima spedizione</h1>
+
+  <div id="loader" class="nascosto">Caricamento...</div>
+
+  <div class="campo-form">
+    <label for="destinatario">Destinatario:</label>
+    <input type="text" id="destinatario" name="destinatario" placeholder="Nome e Cognome" required>
+  </div>
+  <div class="campo-form">
+    <label for="citta">Città:</label>
+    <input type="text" id="citta" name="citta" placeholder="Città" required>
+  </div>
+  <div class="campo-form">
+    <label for="cap">CAP:</label>
+    <input type="text" id="cap" name="cap" placeholder="Codice di Avviamento Postale" required>
+  </div>
+  <div class="campo-form">
+    <label for="dimensioneArticolo">Dimensione Articolo:</label>
+    <input type="text" id="dimensioneArticolo" name="dimensioneArticolo" placeholder="es. 22*56" required>
+  </div>
+  <div class="campo-form">
+    <label for="pesoArticolo">Peso Articolo (Kg):</label>
+    <input type="number" id="pesoArticolo" name="pesoArticolo" min="0.1" step="0.1" required>
+  </div>
+  <div class="campo-form">
+    <label for="indirizzo">Indirizzo:</label>
+    <input type="text" id="indirizzo" name="indirizzo" placeholder="Indirizzo completo" required>
+  </div>
+  <div class="campo-form">
+    <label for="note">Note:</label>
+    <textarea id="note" name="note" rows="4" placeholder="Eventuali note aggiuntive"></textarea>
+  </div>
+  <div class="pulsanti-form">
+    <button type="submit">Invia</button>
+    <button type="reset">Annulla</button>
+  </div>
+
+
+
+
+  <div id="risposta" class="nascosto">
+    <strong>Perfetto, a breve sarai contatatto via email</strong>
+    <div id="contenuto-risposta"></div>
+  </div>
+  <div id="errore" class="nascosto">
+    <strong>Attenzione..</strong>
+    <div id="contenuto-errore"></div>
+  </div>
+  <!-- Sezione per chiedere all'utente cosa vuole fare dopo aver inviato una nuova spedizione-->
+    <div id="azioni-post-risposta" class="nascosto">
+      <p>Cosa vuoi fare ora?</p>
+      <button type="button" onclick="window.location.reload();">Nuova Spedizione</button>
+      <button type="button" onclick="mostraSpedizioni();">Consulta le tue Spedizioni</button>
+    </div>
+
+  <div class="separatore"></div>
+  <div class="pulsanti-form">
+    <button type="button" id="mostra-spedizioni-btn" onclick="mostraSpedizioni();">Visualizza le tue spedizioni recenti</button>
+  </div>
+
+
+
+  <!-- Sezione per il display delle spedizioni dell'utente connesso -->
+  <div id="leTueSpedizioni" class="nascosto">
+    <h2>Le tue spedizioni recenti:</h2>
+    <table>
+      <thead>
+      <tr>
+        <th>Id</th>
+        <th>Nominativo </th>
+        <th>Città</th>
+        <th>CAP</th>
+        <th>Dimensione</th>
+        <th>Peso(Kg)</th>
+        <th>Indirizzo destinatario</th>
+        <th>Stato</th>
+        <th>Note</th>
+      </tr>
+      </thead>
+      <tbody id="elencoSpedizioni">
+      </tbody>
+    </table>
+    <div id="paginazione">
+      <button id="prevPage">Precedente</button>
+      <span id="infoPagina"></span>
+      <button id="nextPage">Successivo</button>
+    </div>
+  </div>
+
+</form>
+</div>
+
+<footer style="background-color: #007bff; color: white; text-align: center; padding: 20px; margin-top: 20px;">
+  © 2024 Andrea Cavallo
+</footer>
+<script src="/js/user.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+server:
+  port: 8091
+
+spring:
+  data:
+    mongodb:
+      uri: mongodb://mongodb:27017/shipmentManagement
+      database: shipmentManagement
+      minPoolSize: 10
+      maxPoolSize: 50
+  kafka:
+    consumer:
+      bootstrap-servers: kafka:29092
+      outbox:
+        groupId: shipment-topic-consumer-001
+        topicName: shipment-topic-v0.0.1
+      concurrency: 4
+      enable-auto-commit: false
+      retryCount: 3
+      backoffIntervalMillis: 3000
+      maxPollIntervalMs: 12000000
+      maxPollRecords: 100
+      sessionTimeoutMs: 10000
+      fetchMaxBytes: 52428800
+
+otel:
+  traces:
+    exporter: otlp
+    exporter.otlp:
+      endpoint: http://jaeger:4317
+  resource:
+    attributes:
+      service.name: shipment-consumer
