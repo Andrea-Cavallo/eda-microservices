@@ -142,7 +142,7 @@ This section allows users to manage their shipments, track statuses.
 
 ![Shipment Management](pics/seeSped.png "Shipment Management")
 
-### Shipment Management ( with User Role )
+### Shipment Management ( with Admin Role )
 
 The difference with the user page is that the admin can view all shipments in the database and can also modify their status, rejecting them at will as seen in the photos.
 ![Shipment Management](pics/updateStatus0.png "Shipment Management Admin Update")
