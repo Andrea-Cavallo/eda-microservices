@@ -144,6 +144,8 @@ public class UserSessionApi {
         Session session = Session.builder().sessionId(sessionId).email(email).role(role).build();
 
         try {
+            log.debug("Pulisco redis..");
+            redisAuthService.invalidateSession( sessionId );
             log.debug("Salvo la sessione su Redis...");
             redisAuthService.saveSession(session);
         } catch

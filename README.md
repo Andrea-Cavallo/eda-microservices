@@ -2,12 +2,11 @@
 
 This repository provides a comprehensive example of an event-driven microservices architecture designed for efficient order management. It leverages technologies such as Kafka, MongoDB, Redis, PostgreSQL, Quarkus, Spring Boot, and Apache Camel to create a scalable, reliable, and reactive system.
 
-![Diagram](1.png)
+![Diagram](pics/1.png)
 
 ## Key Components
 
-- **Client**: The user interface or client application that interacts with the system.
-- **Users UI**: A user interface developed with the Quarkus framework.
+- **Client-Users UI**: A user interface developed with the Quarkus framework.
 - **Users Write (Login Reg)**: A microservice responsible for handling user registration and login. It persists user credentials and session data to a PostgreSQL database.
 - **Redis**: Utilized for caching and validating user session data after login for enhanced performance and session management.
 - **Shipment Producer**: After login validation, this service is responsible for processing order creation requests. Once an order is processed, it publishes an event to a Kafka topic.
@@ -28,12 +27,16 @@ This repository provides a comprehensive example of an event-driven microservice
 6. The **Shipments Notifier Consumer**, using Apache Camel, processes the consumed event and sends out an email notification.
 7. Additionally, the **Shipments Read** service provides read-only access to shipment data, adhering to the CQRS pattern for separating read operations from write operations.
 
-## Considerations
+## Benefits of this Architecture
 
+- **Decoupling**: Components interact asynchronously via events, promoting flexibility.
+- **Scalability**: Services can be scaled independently based on workload.
+- **Resilience**: Kafka ensures reliable event delivery and message persistence.
+- **Observability**: Distributed tracing tools (e.g., Jaeger) can help debug flows.
+- **CQRS**: Separates reads and writes for performance and maintainability.
 - The use of **Redis** for session validation post-login ensures that subsequent user operations are fast and efficient.
 - The **Kafka Source Connector** allows for decoupling the system components, providing flexibility in the data flow and enabling real-time data synchronization.
 - **Apache Camel** is used for routing and mediation rules, simplifying integration with email services for notifications.
-- The **CQRS** pattern enhances the system's scalability and performance by segregating the read and write operations.
 
 ## Starting Services with Docker Compose
 
@@ -50,7 +53,7 @@ he system utilizes a range of Docker images to create the microservices environm
 - `mailhog/mailhog`: An email testing tool with a fake SMTP server.
 - `mongo`: The MongoDB NoSQL database for storing shipment data.
 
-![Diagram](containers.png)
+![Diagram](pics/containers.png)
 
 Each service in the `docker-compose.yml` file is built from a specific context or image and is dependent on other services like `kafka`, `zookeeper`, `mongodb`, and `mailhog` to function properly.
 
@@ -104,18 +107,16 @@ Here are the steps to enable a replica set in MongoDB:
    rs.initiate();
    ```
 
-   This command will configure MongoDB to start as a replica set with the current node as the primary.
+This command will configure MongoDB to start as a replica set with the current node as the primary.
+After executing these commands, MongoDB will function as a replica set, allowing you to configure the Kafka Connector to interact with MongoDB.
+You will find the cURL command in the main root of the project in kafka-source-connector.json, which will register the connector:
 
-   After executing these commands, MongoDB will function as a replica set, allowing you to configure the Kafka Connector to interact with MongoDB.
-
-   You will find the cURL command in the main root of the project in kafka-source-connector.json, which will register the connector:
-
-![Diagram](createConnector.png)
+![Diagram](pics/createConnector.png)
 
 Afterward, you can also view the topic correctly created by Kafka-UI.
 In this case, the topic name you find is based on the prefix I have chosen in the connector, infact final name is: [prefixName.dbName.collectionName]
 
-![Diagram](kafkaui.png)
+![Diagram](pics/kafkaui.png)
 
 ## Application Interface Screenshots
 
@@ -125,21 +126,34 @@ Below are some screenshots that showcase various aspects of the application's us
 
 Here is where users can enter their credentials to sign-up.
 
-![Login Page](reg.png "Login Page")
+![Login Page](pics/reg.png "Login Page")
 
 ### Login Page
 
 Here is where users can enter their credentials to log in to the application.
 
-![Login Page](login.png "Login Page")
+![Login Page](pics/login.png "Login Page")
 
-### Shipment Management
+### Shipment Management ( with User Role )
 
 This section allows users to manage their shipments, track statuses.
 
-![Shipment Management](newship.png "Shipment Management")
+![Shipment Management](pics/newship.png "Shipment Management")
 
-![Shipment Management](seeSped.png "Shipment Management")
+![Shipment Management](pics/seeSped.png "Shipment Management")
+
+### Shipment Management ( with User Role )
+
+The difference with the user page is that the admin can view all shipments in the database and can also modify their status, rejecting them at will as seen in the photos.
+![Shipment Management](pics/updateStatus0.png "Shipment Management Admin Update")
+
+![Shipment Management](pics/updateStatus.png "Shipment Management Admin Update Status ok")
+
+### Consumer-Notifier ( Apache Camel ) in action
+
+In the last photo, we instead see Apache Camel in action, listening on the topic sent by the Kafka source connector, and whenever an insert is made and everything has indeed gone smoothly, an email is sent to the respective user.
+
+![Shipment Management](pics/mail.png "Notifier")
 
 ### Technologies Used
 
@@ -158,6 +172,7 @@ This section allows users to manage their shipments, track statuses.
 
 ### Author
 
-![Andrea Cavallo](ac.jpg "Andrea Cavallo")
+![Andrea Cavallo](pics/ac.jpg "Andrea Cavallo")
 
 [Andrea Cavallo] - [a.cavallo@outlook.it]
+[Linkedin] - [https://www.linkedin.com/in/cavalloandrea88/]
